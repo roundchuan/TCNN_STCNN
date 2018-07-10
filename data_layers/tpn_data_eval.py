@@ -18,23 +18,23 @@ class DataEval():
     self._depth = 8
     self._height = 240
     self._width = 320
-    self.dataset = jhmdb('val', [self._height, self._width], split=1)
-    self.anchors, self.valid_idx, self._anchor_dims = self.dataset.get_anchors()
+    self.dataset = jhmdb('val', [self._height, self._width], split=1)#选取测试集，[height, width] = clip_shape
+    self.anchors, self.valid_idx, self._anchor_dims = self.dataset.get_anchors()#获取测试集anchors
 
     caffe.set_mode_gpu()
-    self._net = caffe.Net(net, model, caffe.TEST)
+    self._net = caffe.Net(net, model, caffe.TEST)#网络前传
 
   def forward(self):
     [clips, gt_bboxes, gt_label, vid_name, is_last] \
       = self.dataset.next_val_video()
 
     if not(os.path.isdir('data/jhmdb/tpn/{}'.format(vid_name))):
-      os.makedirs('data/jhmdb/tpn/{}'.format(vid_name))
+      os.makedirs('data/jhmdb/tpn/{}'.format(vid_name))#根据video名称创建tpn目录 
     num_frames = clips.shape[0]
     scores = np.zeros((num_frames, 3600))
     weights = np.zeros(num_frames)
     diff = np.zeros((num_frames, 4, 3600))
-    for i in xrange(num_frames - self._depth + 1):
+    for i in xrange(num_frames - self._depth + 1):#每8个取图片
       batch_clip = np.expand_dims(clips[i : i + self._depth].transpose(3, 0, 1, 2), axis=0)
       self._net.blobs['data'].data[...] = batch_clip.astype(np.float32,
                                                             copy=False)
