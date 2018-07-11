@@ -24,12 +24,12 @@ class jhmdb():
                      'jump', 'kick_ball', 'pick', 'pour', 'pullup', 'push',
                      'run', 'shoot_ball', 'shoot_bow', 'shoot_gun', 'sit',
                      'stand', 'swing_baseball', 'throw', 'walk', 'wave')
-    self._class_to_ind = dict(zip(self._classes, xrange(self._num_classes)))
+    self._class_to_ind = dict(zip(self._classes, xrange(self._num_classes)))#类别标签
     cache_file = os.path.join(self._data_path, 'cache',
         'jhmdb_%d_%d_db.pkl' % (self._height, self._width))
     if os.path.exists(cache_file):
       with open(cache_file, 'rb') as fid:
-        self._vddb = cPickle.load(fid)
+        self._vddb = cPickle.load(fid)#self._vddb包含了gt video_gt_box
       print ('{} gt vddb loaded from {}'.format(self._name, cache_file))
     else:
       self._vddb = self._read_video_list()
@@ -37,7 +37,7 @@ class jhmdb():
       [self._load_annotations(v) for v in self._vddb]
 
       with open(cache_file, 'wb') as fid:
-        cPickle.dump(self._vddb, fid, cPickle.HIGHEST_PROTOCOL)
+        cPickle.dump(self._vddb, fid, cPickle.HIGHEST_PROTOCOL)#没有生成pkl，读取anno文件并生成pkl
 
     self._curr_idx = 0
 
@@ -45,9 +45,9 @@ class jhmdb():
                              'mean_frame_{}_{}.npy'.format(self._height,
                                                            self._width))
     if os.path.exists(mean_file):
-      self._mean_frame = np.load(mean_file)
+      self._mean_frame = np.load(mean_file)#存在mean直接读取
     else:
-      self._mean_frame = self.compute_mean_frame()
+      self._mean_frame = self.compute_mean_frame()#计算mean
 
     if name == 'train':
       self._vddb = self.keeps(1)
@@ -62,7 +62,7 @@ class jhmdb():
   def size(self):
     return len(self._vddb)
 
-  def keeps(self, num):
+  def keeps(self, num):#1,2区分train和val
     result = []
     for i in xrange(len(self.vddb)):
       if self.vddb[i]['split'][self._split] == num:
@@ -248,10 +248,10 @@ class jhmdb():
 
       video = self.vddb[self._curr_idx]
       total_frames = video['gt_bboxes'].shape[0]
-      curr_frame = np.random.randint(0, total_frames - depth + 1)
+      curr_frame = np.random.randint(0, total_frames - depth + 1)#最后一个tube起始帧
       f_idx = int(video['gt_bboxes'][curr_frame, 0])
-      tmp_video = video['video'][f_idx : f_idx + depth] - self._mean_frame
-      tmp_bbox = video['gt_bboxes'][curr_frame : curr_frame + depth, 1 : 5]
+      tmp_video = video['video'][f_idx : f_idx + depth] - self._mean_frame#读取depth帧图片
+      tmp_bbox = video['gt_bboxes'][curr_frame : curr_frame +   , 1 : 5]
 
       if self._name == 'train' and np.random.randint(0, 2) == 1:
         tmp_video = tmp_video[:, :, :: -1, :]
@@ -283,7 +283,7 @@ class jhmdb():
       self._curr_idx = 0
       np.random.shuffle(self._vddb)
     video = self._vddb[self._curr_idx]['video'] - self._mean_frame
-    gt_bboxes = self._vddb[self._curr_idx]['gt_bboxes'] * 1.25
+    gt_bboxes = self._vddb[self._curr_idx]['gt_bboxes'] * 1.25#rec 1.25?
     gt_label = self._vddb[self._curr_idx]['gt_label']
     vid_name = self._vddb[self._curr_idx]['video_name']
     pred = np.load('data/jhmdb/tpn/{}/bboxes.npy'.format(vid_name)) * 1.25
@@ -301,7 +301,7 @@ class jhmdb():
     for db in self._vddb:
       curr_frame = np.sum(db['video'], dtype=np.float32, axis=0)
       sum_frame += curr_frame
-      num_frames += db['video'].shape[0]
+      num_frames += db['video'].shape[0]#包含gt_box坐标
     sum_frame = sum_frame / num_frames
     np.save(os.path.join(self._data_path, 'cache',
                          'mean_frame_{}_{}.npy'.format(self._height,
@@ -309,7 +309,7 @@ class jhmdb():
             sum_frame)
     return sum_frame
 
-  def cluster_bboxes(self, length=8, anchors=9):
+  def cluster_bboxes(self, length=8, anchors=9):#length图片帧数
     data = np.empty((0, 2))
     for db in self._vddb:
       boxes = db['gt_bboxes']
