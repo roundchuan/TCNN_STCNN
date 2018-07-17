@@ -309,7 +309,7 @@ class jhmdb():
             sum_frame)
     return sum_frame
 
-  def cluster_bboxes(self, length=8, anchors=9):#length图片帧数
+  def cluster_bboxes(self, length=8, anchors=9):#length图片帧数,anchors 4-17
     data = np.empty((0, 2))
     for db in self._vddb:
       boxes = db['gt_bboxes']
