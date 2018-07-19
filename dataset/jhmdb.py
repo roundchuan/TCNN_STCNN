@@ -76,9 +76,9 @@ class jhmdb():
     bottom_width = int(np.ceil(self._width / 16.0))
     shift_x = np.arange(0, bottom_width)
     shift_y = np.arange(0, bottom_height)
-    shift_x, shift_y = np.meshgrid(shift_x, shift_y)
+    shift_x, shift_y = np.meshgrid(shift_x, shift_y)#返回二维矩阵
     shifts = np.vstack((shift_x.ravel(), shift_y.ravel(),
-                        shift_x.ravel(), shift_y.ravel())).transpose()
+                        shift_x.ravel(), shift_y.ravel())).transpose()#堆叠成4个一维矩阵
     # add A anchors (1, A, 4) to
     # cell K shifts (K, 1, 4) to get
     # shift anchors (K, A, 4)
@@ -86,8 +86,8 @@ class jhmdb():
     A = 12
     K = shifts.shape[0]
     all_anchors = (base_anchors.reshape((1, A, 4)) +
-                   shifts.reshape((1, K, 4)).transpose((1, 0, 2)))
-    all_anchors = all_anchors.reshape((K * A, 4))
+                   shifts.reshape((1, K, 4)).transpose((1, 0, 2)))#基础anchors添加上偏移量
+    all_anchors = all_anchors.reshape((K * A, 4))#返回原来 *4大小的anchors，相当于是一个3维的anchors
 
     # only keep anchors inside the image
     inds_inside = np.where(
@@ -313,9 +313,9 @@ class jhmdb():
     data = np.empty((0, 2))
     for db in self._vddb:
       boxes = db['gt_bboxes']
-      l = boxes.shape[0] - length + 1
+      l = boxes.shape[0] - length + 1#最后一个batch
       for i in xrange(l):
-        if not(boxes[i, 0] + length == boxes[i + length - 1, 0] + 1):
+        if not(boxes[i, 0] + length == boxes[i + length - 1, 0] + 1):#判断是否超出边界
           print('Invalid boxes!')
           continue
         curr = np.mean(boxes[i : i + length, 1 : 5], axis=0)
