@@ -278,7 +278,7 @@ class jhmdb():
            vid_name, \
            self._curr_idx == self.size
 
-  def next_rec_video(self):
+  def next_rec_video(self):#next recong返回包含bboxes作为pred
     if self._curr_idx == self.size:
       self._curr_idx = 0
       np.random.shuffle(self._vddb)
