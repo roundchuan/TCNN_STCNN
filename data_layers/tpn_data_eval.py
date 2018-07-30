@@ -19,7 +19,7 @@ class DataEval():
     self._height = 240
     self._width = 320
     self.dataset = jhmdb('val', [self._height, self._width], split=1)#选取测试集，[height, width] = clip_shape
-    self.anchors, self.valid_idx, self._anchor_dims = self.dataset.get_anchors()#获取测试集anchors
+    self.anchors, self.valid_idx, self._anchor_dims = self.dataset.get_anchors()#获取测试集anchors，valid_idx有效idx
 
     caffe.set_mode_gpu()
     self._net = caffe.Net(net, model, caffe.TEST)#网络前传
@@ -39,8 +39,8 @@ class DataEval():
       self._net.blobs['data'].data[...] = batch_clip.astype(np.float32,
                                                             copy=False)
       self._net.forward()
-      s = self._net.blobs['loss'].data[:, 1]
-      d = self._net.blobs['reg_score'].data[...]
+      s = self._net.blobs['loss'].data[:, 1]#action_ness score
+      d = self._net.blobs['reg_score'].data[...]#regress box
       scores[i: i + self._depth] += s
       weights[i : i + self._depth] += np.ones(self._depth)
       diff[i : i + self._depth] += d
@@ -49,9 +49,9 @@ class DataEval():
     curr_diff = \
       diff[0].reshape((4, 12, 15, 20)).transpose((2, 3, 1, 0)).reshape((-1, 4))[
         self.valid_idx]
-    selected_idx = np.argsort(curr_score)[-40:]
-    prev_s = curr_score[selected_idx]
-    prev_pred = pred_bbox(self.anchors[selected_idx], curr_diff[selected_idx])
+    selected_idx = np.argsort(curr_score)[-40:]#40个最大score的下标
+    prev_s = curr_score[selected_idx]#上一个预测score actioness score
+    prev_pred = pred_bbox(self.anchors[selected_idx], curr_diff[selected_idx])#根据下标，确定预测box
     prev_state = []
     preds = []
     preds.append(prev_pred)
@@ -73,14 +73,14 @@ class DataEval():
       idx = overlaps.argmax(axis=1)
       curr_state = []
       for j in xrange(40):
-        curr_s[j] += overlaps[j, idx[j]]
+        curr_s[j] += overlaps[j, idx[j]]#计算S（参见论文公式）
         curr_state.append(prev_state[idx[j]] + (j,))
 
       prev_s = curr_s
       prev_pred = curr_pred
       prev_state = curr_state
 
-    selected = prev_state[curr_s.argmax()]
+    selected = prev_state[curr_s.argmax()]#找出最大s的state（连接方式）
     det = np.empty((num_frames, 4))
     for i in xrange(num_frames):
       det[i] = preds[i][selected[i]] * 16
