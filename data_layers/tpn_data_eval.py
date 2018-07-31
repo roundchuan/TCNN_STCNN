@@ -63,14 +63,14 @@ class DataEval():
       curr_diff = diff[i].reshape((4, 12, 15, 20)).transpose((2, 3, 1, 0)).reshape((-1, 4))[self.valid_idx] / weights[i]
 
       selected_idx = np.argsort(curr_score)[-40 :]
-      curr_s = curr_score[selected_idx]
+      curr_s = curr_score[selected_idx]#40
       curr_pred = pred_bbox(self.anchors[selected_idx], curr_diff[selected_idx])
       preds.append(curr_pred)
 
       overlaps = bbox_overlaps(
         np.ascontiguousarray(curr_pred, dtype=np.float),
         np.ascontiguousarray(prev_pred, dtype=np.float)) + prev_s
-      idx = overlaps.argmax(axis=1)
+      idx = overlaps.argmax(axis=1)#两个相邻clip的最大overlap 索引 40
       curr_state = []
       for j in xrange(40):
         curr_s[j] += overlaps[j, idx[j]]#计算S（参见论文公式）
