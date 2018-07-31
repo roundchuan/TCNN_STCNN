@@ -36,7 +36,7 @@ class DataLayer(caffe.Layer):
     batch_tois = np.empty((0, 5))
     batch_label = np.empty((0, 1))
 
-    u_i = np.unique(box_idx)
+    u_i = np.unique(box_idx)#box_idx {[0]}
     for i in u_i:
       curr_idx = np.where(box_idx == i)[0]
       box = tmp_bboxes[curr_idx, :, :]
