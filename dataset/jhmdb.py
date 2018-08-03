@@ -318,7 +318,7 @@ class jhmdb():
         if not(boxes[i, 0] + length == boxes[i + length - 1, 0] + 1):#判断是否超出边界
           print('Invalid boxes!')
           continue
-        curr = np.mean(boxes[i : i + length, 1 : 5], axis=0)
+        curr = np.mean(boxes[i : i + length, 1 : 5], axis=0)#1：5=boxes x1,y1,x2,y2
         x = (curr[2] - curr[0]) / 16
         y = (curr[3] - curr[1]) / 16
         data = np.vstack((data, np.array([x, y])))
